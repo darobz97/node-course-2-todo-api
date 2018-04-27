@@ -4,9 +4,6 @@
 //and turn them into variables
 //ObjectID lets us make new objectIds
 const {MongoClient, ObjectID} = require('mongodb');
-//New instance of the object ObjectID
-var obj = new ObjectID();
-console.log(obj);
 
 MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, client) => {
   if (err) {
