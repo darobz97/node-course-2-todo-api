@@ -19,7 +19,16 @@ app.post('/todos', (req, res) => {
   });
 
   todo.save().then((doc) => {
-    res.send(doc)
+    res.send(doc);
+  }, (e) => {
+    res.status(400).send(e);
+  })
+});
+
+app.get('/todos', (req, res) => {
+  Todo.find().then((todos) => {
+    //I send an object with a property todos: todos
+    res.send({todos});
   }, (e) => {
     res.status(400).send(e);
   })

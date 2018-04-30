@@ -40,7 +40,7 @@ describe('POST /todos', () => {
   it('should not create todo with invalid body data', (done) => {
     request(app)
     .post('/todos')
-    .send({text: 'jfkdsls'})
+    .send({text: ''})
     .expect(400)
     .end((err, res) => {
       if (err) {
