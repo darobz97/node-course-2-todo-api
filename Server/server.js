@@ -6,6 +6,8 @@ var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
 
+const port = provess.env.PORT || 3000;
+
 //This var is going to store our express app
 var app = express();
 
@@ -51,8 +53,8 @@ app.get('/todos', (req, res) => {
   })
 });
 
-app.listen(3000, () => {
-  console.log('Sarted on port 3000');
+app.listen(port, () => {
+  console.log(`Started on port ${port}`);
 });
 
 module.exports = {app};
