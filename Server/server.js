@@ -25,6 +25,17 @@ app.post('/todos', (req, res) => {
   })
 });
 
+app.get('/todos/:id', (req, res) => {
+  Todo.findById(req.params.id).then((todo) => {
+    if (!todo){
+      return res.send('Nothing found with that id');
+    }
+    res.send(todo);
+  }, (e) => {
+    res.status(400).send(e);
+  })
+})
+
 app.get('/todos', (req, res) => {
   Todo.find().then((todos) => {
     //I send an object with a property todos: todos
