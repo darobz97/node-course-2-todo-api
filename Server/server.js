@@ -6,7 +6,7 @@ var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
 
-const port = provess.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
 //This var is going to store our express app
 var app = express();
