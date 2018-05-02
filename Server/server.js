@@ -1,3 +1,17 @@
+var env = process.env.NODE_ENV || 'development';
+
+console.log('env ****', env);
+
+if (env === 'development'){
+  process.env.PORT = 3000;
+  process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoApp';
+} else if (env === 'test'){
+  process.env.PORT = 3000;
+  process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoAppTest';
+} else if (env === 'production'){
+  process.env.MONGODB_URI = 'mongodb://darobz97:ABCDE12345@ds263109.mlab.com:63109/todos-db';
+}
+
 const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -7,7 +21,7 @@ var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 //This var is going to store our express app
 var app = express();
