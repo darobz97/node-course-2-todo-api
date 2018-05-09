@@ -1,12 +1,123 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
+const validator = require('validator');
+const jwt = require('jsonwebtoken');
+const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
-var User = mongoose.model('User', {
+var UserSchema = new mongoose.Schema({
   email: {
     type: String,
     require: true,
     trim: true,
-    minlength: 1
+    minlength: 1,
+    unique: true,
+    validate: {
+      //the value entered by user is passed to this function specified
+      //in validator
+      validator: validator.isEmail,
+      message: '{VALUE} is not a valid email'
+    }
+  },
+  password: {
+    type: String,
+    require: true,
+    minlength: 6
+  },
+  tokens: [{
+    access: {
+      type: String,
+      require: true
+    },
+    token: {
+      type: String,
+      require: true
+    }
+  }]
+});
+
+UserSchema.pre('save', function (next) {
+  var user = this;
+
+  if (user.isModified('password')) {
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(user.password, salt, (err, hash) => {
+        user.password = hash;
+        next();
+      });
+    });
+
+  } else {
+    next();
   }
 });
+
+//This specifies what exactly gets sent back
+//When a Mongoose model is converted into json
+//It's overriding an existent method
+UserSchema.methods.toJSON = function () {
+  var user = this;
+  //This only keeps the propierties of your object,
+  //Not the ones that a mongoose obj adds
+  var userObject = user.toObject();
+  return _.pick(userObject, ['_id', 'email']);
+};
+
+UserSchema.methods.generateAuthToken = function () {
+  var user = this;
+  var access = 'auth';
+  var token = jwt.sign({_id: user._id.toHexString(), access}, process.env.JWT_SECRET).toString();
+  //Here we push the info needed for the token obj
+  user.tokens.push({access, token});
+  return user.save().then(() => {
+    return token;
+  });
+};
+
+UserSchema.methods.removeToken = function (token) {
+  var user = this;
+
+  return user.update({
+    $pull: {
+      //this pulls out any object in the tokens array that has a prpery of token: token
+      tokens: {token}
+    }
+  });
+};
+
+UserSchema.statics.findByCredentials = function (email, password) {
+var User = this;
+  return User.findOne({email}).then((user) => {
+    if (!user){
+      return Promise.reject();
+    }
+
+    return new Promise((resolve, reject) => {
+      bcrypt.compare(password, user.password, (err, res) => {
+        if (err || res === false) {reject()}
+        resolve(user);
+      });
+    })
+  })
+};
+
+UserSchema.statics.findByToken = function (token) {
+  var User = this;
+  var decoded;
+
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  } catch (e) {
+    return Promise.reject();
+  }
+
+  return User.findOne({
+    _id: decoded._id,
+    'tokens.token': token,
+    'tokens.access': 'auth'
+  });
+};
+
+var User = mongoose.model('User', UserSchema);
 
 module.exports = {User};
